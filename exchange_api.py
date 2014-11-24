@@ -7,12 +7,13 @@ class ExchangeException(Exception):
 
 # An order.
 class Order(object):
-    def __init__(self, market, order_id, bid_order, amount, price):
+    def __init__(self, market, order_id, bid_order, amount, price, time=None):
         self._market = market
         self._order_id = order_id
         self._bid_order = bid_order
         self._amount = amount
         self._price = price
+        self._time = time
 
     def GetMarket(self):
         return self._market
@@ -28,6 +29,9 @@ class Order(object):
 
     def GetPrice(self):
         return self._price
+
+    def GetTime(self):
+        return self._time
 
 # An available market.
 class Market(object):
