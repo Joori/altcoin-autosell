@@ -22,14 +22,14 @@ except ImportError:
 class Market(exchange_api.Market):
     _TRADE_MINIMUMS = {('Points', 'BTC') : 0.1}
 
-    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=-1, max_price_seen=0):
+    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=[], day_max_price=0):
         exchange_api.Market.__init__(self, exchange)
         self._source_currency = source_currency
         self._target_currency = target_currency
         self._market_id = market_id
         self._reverse_market = reverse_market
-        self._last_price = last_price
-        self._max_price_seen = max_price_seen
+        self._prices = prices
+        self._day_max_price = day_max_price
 
     def GetSourceCurrency(self):
         return self._source_currency
@@ -40,11 +40,11 @@ class Market(exchange_api.Market):
     def GetTradeMinimum(self):
         return self._TRADE_MINIMUMS.get((self._source_currency, self._target_currency), 0.0000001)
 
-    def GetLastPrice(self):
-        return self._last_price
+    def GetPrices(self):
+        return self._prices
 
-    def GetMaxPriceSeen(self):
-        return self._max_price_seen
+    def GetDayMaxPrice(self):
+        return self._day_max_price
 
     def GetPublicOrders(self):
         try:
@@ -98,26 +98,26 @@ class Cryptsy(exchange_api.Exchange):
     def _LoadMarkets(self):
         for market in self._Request('getmarkets')['return']:
             market1 = Market(self, market['primary_currency_code'],
-                    market['secondary_currency_code'], market['marketid'], False, market['lasttradeprice'])
+                    market['secondary_currency_code'], market['marketid'], False)
             self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
             market2 = Market(self, market['secondary_currency_code'],
-                    market['primary_currency_code'], market['marketid'], True, 1/market['lasttradeprice'])
+                    market['primary_currency_code'], market['marketid'], True)
             self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
 
     def _RefreshMarkets(self):
         for market in self._Request('getmarkets')['return']:
-            max_price_seen = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetLastPriceSeen()
-            last_trade_price = market['lasttradeprice']
+            prices = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetPrices()
+            prices[1] = prices[0]
+            prices[0] = market['last_trade']
             market1 = Market(self, market['primary_currency_code'],
-                    market['secondary_currency_code'], market['marketid'], False, last_trade_price,
-                    last_trade_price if last_trade_price > max_price_seen else max_price_seen)
+                    market['secondary_currency_code'], market['marketid'], False, prices, market['high_trade'])
             self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
             
-            max_price_seen = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetLastPriceSeen()
-            last_trade_price = 1/market['lasttradeprice']
+            prices = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetPrices()
+            prices[1] = prices[0]
+            prices[0] = market['last_trade']
             market2 = Market(self, market['secondary_currency_code'],
-                    market['primary_currency_code'], market['marketid'], True, last_trade_price,
-                    last_trade_price if last_trade_price > max_price_seen else max_price_seen)
+                    market['primary_currency_code'], market['marketid'], True, prices, market['high_trade'])
             self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
 
     def _MarketRefreshLoop(self):
