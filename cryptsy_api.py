@@ -112,6 +112,7 @@ class Cryptsy(exchange_api.Exchange):
                     market['secondary_currency_code'], market['marketid'], False, last_trade_price,
                     last_trade_price if last_trade_price > max_price_seen else max_price_seen)
             self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
+            
             max_price_seen = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetLastPriceSeen()
             last_trade_price = 1/market['lasttradeprice']
             market2 = Market(self, market['secondary_currency_code'],
