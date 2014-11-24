@@ -4,6 +4,8 @@ import hashlib
 import hmac
 import json
 import time
+#import thread
+
 try:
     import http.client
     import urllib.request
@@ -92,6 +94,9 @@ class Cryptsy(exchange_api.Exchange):
                 self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
         except (TypeError, LookupError) as e:
             raise exchange_api.ExchangeException(e)
+
+        #
+        
 
     def _Request(self, method, post_dict=None):
         if post_dict is None:
