@@ -4,7 +4,7 @@ import hashlib
 import hmac
 import json
 import time
-#import thread
+import thread
 
 try:
     import http.client
@@ -104,10 +104,25 @@ class Cryptsy(exchange_api.Exchange):
                     market['primary_currency_code'], market['marketid'], True, 1/market['lasttradeprice'])
             self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
 
+    def _RefreshMarkets(self):
+        for market in self._Request('getmarkets')['return']:
+            max_price_seen = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetLastPriceSeen()
+            last_trade_price = market['lasttradeprice']
+            market1 = Market(self, market['primary_currency_code'],
+                    market['secondary_currency_code'], market['marketid'], False, last_trade_price,
+                    last_trade_price if last_trade_price > max_price_seen else max_price_seen)
+            self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
+            max_price_seen = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetLastPriceSeen()
+            last_trade_price = 1/market['lasttradeprice']
+            market2 = Market(self, market['secondary_currency_code'],
+                    market['primary_currency_code'], market['marketid'], True, last_trade_price,
+                    last_trade_price if last_trade_price > max_price_seen else max_price_seen)
+            self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
+
     def _MarketRefreshLoop(self):
         while True:
             time.sleep(5)
-            self._LoadMarkets()
+            self._RefreshMarkets()
 
     def _Request(self, method, post_dict=None):
         if post_dict is None:
