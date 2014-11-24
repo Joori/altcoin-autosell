@@ -22,13 +22,14 @@ except ImportError:
 class Market(exchange_api.Market):
     _TRADE_MINIMUMS = {('Points', 'BTC') : 0.1}
 
-    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=-1):
+    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=-1, max_price_seen=0):
         exchange_api.Market.__init__(self, exchange)
         self._source_currency = source_currency
         self._target_currency = target_currency
         self._market_id = market_id
         self._reverse_market = reverse_market
         self._last_price = last_price
+        self._max_price_seen = max_price_seen
 
     def GetSourceCurrency(self):
         return self._source_currency
@@ -41,6 +42,9 @@ class Market(exchange_api.Market):
 
     def GetLastPrice(self):
         return self._last_price
+
+    def GetMaxPriceSeen(self):
+        return self._max_price_seen
 
     def GetPublicOrders(self):
         try:
