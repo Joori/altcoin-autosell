@@ -85,10 +85,10 @@ class Cryptsy(exchange_api.Exchange):
         try:
             for market in self._Request('getmarkets')['return']:
                 market1 = Market(self, market['primary_currency_code'],
-                                 market['secondary_currency_code'], market['marketid'], False)
+                                 market['secondary_currency_code'], market['marketid'], False, market['lasttradeprice'])
                 self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
                 market2 = Market(self, market['secondary_currency_code'],
-                                 market['primary_currency_code'], market['marketid'], True)
+                                 market['primary_currency_code'], market['marketid'], True, 1/market['lasttradeprice'])
                 self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
         except (TypeError, LookupError) as e:
             raise exchange_api.ExchangeException(e)
