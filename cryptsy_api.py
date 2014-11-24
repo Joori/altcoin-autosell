@@ -5,6 +5,7 @@ import hmac
 import json
 import time
 import thread
+import list
 
 try:
     import http.client
@@ -22,7 +23,7 @@ except ImportError:
 class Market(exchange_api.Market):
     _TRADE_MINIMUMS = {('Points', 'BTC') : 0.1}
 
-    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=[], day_max_price=0):
+    def __init__(self, exchange, source_currency, target_currency, market_id, reverse_market, last_price=[-1,-1,-1,-1,-1,-1,], day_max_price=0):
         exchange_api.Market.__init__(self, exchange)
         self._source_currency = source_currency
         self._target_currency = target_currency
@@ -107,17 +108,17 @@ class Cryptsy(exchange_api.Exchange):
     def _RefreshMarkets(self):
         for market in self._Request('getmarkets')['return']:
             prices = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetPrices()
-            prices[1] = prices[0]
-            prices[0] = market['last_trade']
+            prices.insert(0,market['last_trade'])
+            prices.pop()
             market1 = Market(self, market['primary_currency_code'],
                     market['secondary_currency_code'], market['marketid'], False, prices, market['high_trade'])
             self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
             
             prices = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetPrices()
-            prices[1] = prices[0]
-            prices[0] = market['last_trade']
+            prices.insert(0,1/market['last_trade'])
+            prices.pop()
             market2 = Market(self, market['secondary_currency_code'],
-                    market['primary_currency_code'], market['marketid'], True, prices, market['high_trade'])
+                    market['primary_currency_code'], market['marketid'], True, prices, 1/market['high_trade'])
             self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
 
     def _MarketRefreshLoop(self):
