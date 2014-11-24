@@ -89,7 +89,7 @@ class Cryptsy(exchange_api.Exchange):
         except (TypeError, LookupError) as e:
             raise exchange_api.ExchangeException(e)
 
-        #thread.start_new_thread(self._MarketRefreshLoop, ())
+        thread.start_new_thread(self._MarketRefreshLoop, ())
 
     def _LoadMarkets(self):
         for market in self._Request('getmarkets')['return']:
