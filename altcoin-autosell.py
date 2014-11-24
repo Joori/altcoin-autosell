@@ -111,7 +111,7 @@ while True:
                     continue
                 market = currency_markets[target_currency]
 
-                if balance < market.GetTradeMinimum() and market.GetLastPrice < market.GetMaxPriceSeen*0.1:
+                if balance < market.GetTradeMinimum() and market.GetLastPrice() < market.GetMaxPriceSeen()*0.9:
                     currency = None  # don't try other markets
                     continue
 
