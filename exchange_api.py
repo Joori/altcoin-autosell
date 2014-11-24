@@ -34,6 +34,9 @@ class Order(object):
     def GetTime(self):
         return self._time
 
+    def GetID(self):
+        return self._id
+
 # An available market.
 class Market(object):
     def __init__(self, exchange):
