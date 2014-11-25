@@ -114,43 +114,39 @@ while True:
                 sell = False
 
                 if balance < market.GetTradeMinimum() and market.GetPrices()[0] > 0:
-                    if market.GetPrices()[0] > market.GetDaysHigh()*.93:
-                        if market.GetPrices()[0] == market.GetPrices()[1]
-                        and market.GetPrices()[1] == market.GetPrices()[2]
-                        and market.GetPrices()[2] == market.GetPrices()[3]
-                        and market.GetPrices()[3] == market.GetPrices()[4]
-                        and market.GetPrices()[4] == market.GetPrices()[5]:
+                    if market.GetPrices()[0] > market.GetDayMaxPrice()*.93:
+                        if market.GetPrices()[0] == market.GetPrices()[1] and market.GetPrices()[1] == market.GetPrices()[2] and market.GetPrices()[2] == market.GetPrices()[3] and market.GetPrices()[3] == market.GetPrices()[4] and market.GetPrices()[4] == market.GetPrices()[5]:
+                                sell = True
+                    elif market.GetPrices()[0] <= market.GetPrices()[1]:
                             sell = True
-                    else if market.GetPrices()[0] <= market.GetPrices()[1]:
-                        sell = True
                 
                 if sell:
-                    currency = None  # don't try other markets
-                    continue
+                #    currency = None  # don't try other markets
+                #    continue
 
-                try:
-                    orders = [order.GetPrice() for order in market.GetPublicOrders()[0]]
-                    if not orders:
-                        _Log('No buy orders for %s/%s on %s.',
-                             currency, target_currency, exchange.GetName())
+                    try:
+                        orders = [order.GetPrice() for order in market.GetPublicOrders()[0]]
+                        if not orders:
+                            _Log('No buy orders for %s/%s on %s.',
+                                 currency, target_currency, exchange.GetName())
+                            continue
+                        sell_price = max(orders)
+                    except exchange_api.ExchangeException as e:
+                        _Log('Failed to get public orders for %s/%s on %s: %s',
+                             currency, target_currency, exchange.GetName(), e)
                         continue
-                    sell_price = max(orders)
-                except exchange_api.ExchangeException as e:
-                    _Log('Failed to get public orders for %s/%s on %s: %s',
-                         currency, target_currency, exchange.GetName(), e)
-                    continue
 
-                try:
-                    time.sleep(request_delay)
-                    order = market.CreateOrder(False, balance, sell_price)
-                    _Log('Created sell order %s for %s %s at %s %s on %s.',
-                         order.GetOrderId(), _FormatFloat(balance), currency,
-                         _FormatFloat(sell_price), target_currency, exchange.GetName())
-                except exchange_api.ExchangeException as e:
-                    _Log('Failed to create sell order for %s %s at %s %s on %s: %s',
-                         _FormatFloat(balance), currency, _FormatFloat(sell_price),
-                         target_currency, exchange.GetName(), e)
-                finally:
-                    currency = None  # don't try other markets
+                    try:
+                        time.sleep(request_delay)
+                        order = market.CreateOrder(False, balance, sell_price)
+                        _Log('Created sell order %s for %s %s at %s %s on %s.',
+                             order.GetOrderId(), _FormatFloat(balance), currency,
+                             _FormatFloat(sell_price), target_currency, exchange.GetName())
+                    except exchange_api.ExchangeException as e:
+                        _Log('Failed to create sell order for %s %s at %s %s on %s: %s',
+                             _FormatFloat(balance), currency, _FormatFloat(sell_price),
+                             target_currency, exchange.GetName(), e)
+                    finally:
+                        currency = None  # don't try other markets
 
     time.sleep(poll_delay)
