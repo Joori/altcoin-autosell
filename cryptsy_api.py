@@ -96,33 +96,39 @@ class Cryptsy(exchange_api.Exchange):
         _thread.start_new_thread(self._MarketRefreshLoop, ())
 
     def _LoadMarkets(self):
-        for market in self._Request('getmarkets')['return']:
-            market1 = Market(self, market['primary_currency_code'],
-                    market['secondary_currency_code'], market['marketid'], False)
-            self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
-            market2 = Market(self, market['secondary_currency_code'],
-                    market['primary_currency_code'], market['marketid'], True)
-            self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
+            try:
+                for market in self._Request('getmarkets')['return']:
+                    market1 = Market(self, market['primary_currency_code'],
+                            market['secondary_currency_code'], market['marketid'], False)
+                    self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
+                    market2 = Market(self, market['secondary_currency_code'],
+                            market['primary_currency_code'], market['marketid'], True)
+                    self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
+            except ExchangeException as e:
+                _Log('Failed to get market: %s', e)
 
     def _RefreshMarkets(self):
-        for market in self._Request('getmarkets')['return']:
-            prices = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetPrices()
-            prices.insert(0,float(market['last_trade']))
-            prices.pop()
-            market1 = Market(self, market['primary_currency_code'],
-                    market['secondary_currency_code'], market['marketid'], False, prices, float(market['high_trade']))
-            self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
+        try:
+            for market in self._Request('getmarkets')['return']:
+                prices = self._markets[market['primary_currency_code']][market['secondary_currency_code']].GetPrices()
+                prices.insert(0,float(market['last_trade']))
+                prices.pop()
+                market1 = Market(self, market['primary_currency_code'],
+                        market['secondary_currency_code'], market['marketid'], False, prices, float(market['high_trade']))
+                self._markets[market1.GetSourceCurrency()][market1.GetTargetCurrency()] = market1
 
-            prices = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetPrices()
-            prices.insert(0,1/float(market['last_trade']))
-            prices.pop()
-            if float(market['high_trade']) > 0:
-                highval = 1/float(market['high_trade'])
-            else:
-                highval = 0
-            market2 = Market(self, market['secondary_currency_code'],
-                    market['primary_currency_code'], market['marketid'], True, prices, highval)
-            self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
+                prices = self._markets[market['secondary_currency_code']][market['primary_currency_code']].GetPrices()
+                prices.insert(0,1/float(market['last_trade']))
+                prices.pop()
+                if float(market['high_trade']) > 0:
+                    highval = 1/float(market['high_trade'])
+                else:
+                    highval = 0
+                market2 = Market(self, market['secondary_currency_code'],
+                        market['primary_currency_code'], market['marketid'], True, prices, highval)
+                self._markets[market2.GetSourceCurrency()][market2.GetTargetCurrency()] = market2
+        except ExchangeException as e:
+            _Log('Failed to get market: %s', e)
 
     def _MarketRefreshLoop(self):
         while True:
