@@ -111,7 +111,20 @@ while True:
                     continue
                 market = currency_markets[target_currency]
 
-                if balance < market.GetTradeMinimum() and market.GetLastPrice() < market.GetMaxPriceSeen()*0.9:
+                sell = False
+
+                if balance < market.GetTradeMinimum() and market.GetPrices()[0] > 0:
+                    if market.GetPrices()[0] > market.GetDaysHigh()*.93:
+                        if market.GetPrices()[0] == market.GetPrices()[1]
+                        and market.GetPrices()[1] == market.GetPrices()[2]
+                        and market.GetPrices()[2] == market.GetPrices()[3]
+                        and market.GetPrices()[3] == market.GetPrices()[4]
+                        and market.GetPrices()[4] == market.GetPrices()[5]:
+                            sell = True
+                    else if market.GetPrices()[0] <= market.GetPrices()[1]:
+                        sell = True
+                
+                if sell:
                     currency = None  # don't try other markets
                     continue
 
