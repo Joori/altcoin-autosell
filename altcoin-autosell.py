@@ -48,10 +48,12 @@ def _LoadExchangeConfig(config, target_currencies, source_currencies, exchange_c
         _Log('Monitoring %s.', exchange_class.GetName())
         return exchange
 
+verbose = True
 
 parser = argparse.ArgumentParser(description='Script to auto-sell altcoins.')
 parser.add_argument('-c', '--config', dest='config_path', default='~/.altcoin-autosell.config',
                     help='path to the configuration file')
+parser.add_argument('-v', '--verbose', dest='verbose', action='store_const', const=True default=True)
 args = parser.parse_args()
 
 config = configparser.RawConfigParser()
