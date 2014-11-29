@@ -65,7 +65,6 @@ try:
 except IOError as e:
     _Log('Failed to read config: %s', e)
     sys.exit(1)
-
 target_currencies = ([target_currency.strip() for target_currency in
                       config.get('General', 'target_currencies').split(',')] if
                      config.has_option('General', 'target_currencies') else ['BTC', 'LTC'])
@@ -113,6 +112,10 @@ while True:
                     continue
                 market = currency_markets[target_currency]
 
+                if verbose:
+                    _Log("Looking at %s to %s market.",source_currency,target_currency)
+                    _Log("Day's max = %s",market.GetDayMaxPrice())
+                
                 sell = False
 
                 if balance < market.GetTradeMinimum() and market.GetPrices()[0] > 0:
